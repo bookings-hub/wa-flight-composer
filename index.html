@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>WA Flight Composer · by Ajmal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#f0ebe0; --surface:#faf7f2; --card:#ffffff;
+  --border:#ddd4c2; --border2:#c9bfaf;
+  --text:#1a1510; --text2:#3d352c; --muted:#8a7f72;
+  --green:#0c7a68; --green-h:#096055; --green-bg:#e6f4f1;
+  --green-wa:#25d366;
+  --gold:#9a5e08; --gold-bg:#fef3e0;
+  --red:#c0362a; --red-bg:#fdf0ee;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 6px rgba(0,0,0,.04);
+  --r:13px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── HEADER ── */
+header{
+  background:var(--card);border-bottom:1.5px solid var(--border);
+  padding:11px 18px;display:flex;align-items:center;
+  position:sticky;top:0;z-index:200;box-shadow:0 1px 6px rgba(0,0,0,.07);
+}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;border-radius:10px;font-size:18px;
+  background:linear-gradient(135deg,var(--green),#128c7e);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(12,122,104,.25);}
+.logo-name{font-size:15px;font-weight:800;color:var(--text);}
+.logo-name em{color:var(--green);font-style:normal;}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.8px;margin-top:1px;}
+
+/* ── LAYOUT — fully fluid, no max-width ── */
+.app{display:flex;flex-direction:column;width:100%;}
+.form-panel{padding:18px 16px 28px;width:100%;}
+.right-panel{border-top:2px solid var(--border);background:var(--surface);width:100%;}
+
+/* ── SECTION TITLES ── */
+.sec-title{font-size:10px;font-weight:800;letter-spacing:2.5px;color:var(--muted);
+  text-transform:uppercase;display:flex;align-items:center;gap:10px;margin:20px 0 10px;}
+.sec-title:first-child{margin-top:0;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:14px;margin-bottom:10px;box-shadow:var(--sh);transition:border-color .2s;}
+.card:focus-within{border-color:var(--green);}
+.card-head{font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--text2);
+  text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:7px;}
+.card-hrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.card-hrow .card-head{margin-bottom:0;}
+.card-hrow-right{display:flex;align-items:center;gap:7px;}
+
+/* ── GRID HELPERS ── */
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+.g3{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;}
+.f{display:flex;flex-direction:column;gap:4px;}
+label{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;}
+
+/* ── INPUTS ── */
+input[type=text],input[type=number],input[type=date],select{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:9px;
+  padding:9px 11px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;
+  color:var(--text);width:100%;transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:none;appearance:none;}
+input:focus,select:focus{outline:none;border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(12,122,104,.1);}
+input::placeholder{color:#c5bdb2;}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:.4;cursor:pointer;}
+input[type=number]::-webkit-inner-spin-button{opacity:.4;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%238a7f72' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+
+/* Prevent iOS zoom — all inputs must be ≥16px on mobile */
+@media(max-width:1024px){
+  input[type=text],input[type=number],input[type=date],select{font-size:16px !important;}
+}
+
+/* ── ARROW SEP ── */
+.arr{display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:10px;color:var(--green);font-size:18px;font-weight:800;}
+
+/* ── BOLD BUTTON ── */
+.bold-btn{height:34px;min-width:40px;flex-shrink:0;border:1.5px solid var(--border);
+  border-radius:9px;background:var(--surface);color:var(--muted);
+  font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.bold-btn:hover{border-color:var(--gold);color:var(--gold);}
+.bold-btn.on{background:var(--gold-bg);border-color:var(--gold);color:var(--gold);
+  box-shadow:0 0 8px rgba(154,94,8,.2);}
+.bold-hint{font-size:10px;color:var(--muted);margin-top:5px;
+  font-family:'JetBrains Mono',monospace;}
+.bold-hint.on{color:var(--gold);}
+
+/* ── FARE+BAGGAGE ROWS ── */
+.fb-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.8fr) minmax(0,0.8fr) minmax(0,0.8fr) 34px;
+  gap:8px;align-items:flex-end;
+}
+/* On small screens: fare full width, then checkin/cabin/remove on next row */
+@media(max-width:540px){
+  .fb-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px;}
+  .fb-fare{grid-column:1/-1;}
+}
+
+/* ── CUSTOM OPTION INPUT ── */
+.custom-inp{margin-top:6px;}
+
+/* ── CHECKBOX ── */
+.chk-label{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.chk-label input[type=checkbox]{display:none;}
+.chk-box{width:20px;height:20px;flex-shrink:0;border:2px solid var(--border2);
+  border-radius:5px;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.chk-label input[type=checkbox]:checked~.chk-box{background:var(--green);border-color:var(--green);}
+.chk-label input[type=checkbox]:checked~.chk-box::after{content:'✓';color:#fff;font-size:11px;font-weight:900;}
+.chk-txt{font-size:12px;font-weight:800;color:var(--text2);letter-spacing:.4px;}
+.addl-body{margin-top:10px;transition:opacity .2s;}
+.addl-body.dim{opacity:.3;pointer-events:none;}
+
+/* ── SETTINGS ── */
+.set-btn{width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  background:var(--surface);border:1.5px solid var(--border);
+  cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;color:var(--muted);}
+.set-btn:hover{border-color:var(--green);color:var(--green);}
+.set-btn.active{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.settings-panel{display:none;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:12px;margin-bottom:10px;}
+.settings-panel.open{display:block;animation:fadeUp .2s ease;}
+.set-panel-title{font-size:10px;font-weight:800;letter-spacing:1.5px;
+  color:var(--green);text-transform:uppercase;margin-bottom:8px;}
+.preset-empty{font-size:11px;color:var(--muted);padding:4px 0;font-family:'JetBrains Mono',monospace;}
+.preset-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.preset-item:last-child{border-bottom:none;}
+.preset-name{flex:1;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--text2);}
+.preset-del{width:24px;height:24px;border-radius:5px;flex-shrink:0;
+  background:var(--red-bg);border:1px solid var(--red);color:var(--red);
+  cursor:pointer;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.preset-del:hover{background:var(--red);color:#fff;}
+.set-add-row{display:flex;gap:8px;margin-top:10px;}
+.set-add-row input{flex:1;}
+.set-add-btn{padding:9px 14px;background:var(--green);border:none;border-radius:9px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#fff;
+  cursor:pointer;white-space:nowrap;transition:background .18s;}
+.set-add-btn:hover{background:var(--green-h);}
+
+/* ── DYNAMIC ROWS ── */
+.dyn-list{display:flex;flex-direction:column;gap:8px;}
+.dyn-row{display:grid;gap:8px;align-items:flex-end;animation:rIn .18s ease;}
+/* transit: via | hrs | mins | remove */
+.tr-grid{grid-template-columns:minmax(0,1fr) 68px 68px 34px;}
+/* airline: name/select | remove */
+.al-grid{grid-template-columns:minmax(0,1fr) 34px;}
+@media(max-width:400px){
+  .tr-grid{grid-template-columns:minmax(0,1fr) 58px 58px 34px;}
+}
+@keyframes rIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.rm-btn{height:38px;width:34px;flex-shrink:0;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:9px;color:var(--muted);
+  font-size:18px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.rm-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg);}
+.add-row{width:100%;margin-top:8px;padding:8px;background:transparent;
+  border:1.5px dashed var(--border);border-radius:9px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.add-row:hover{border-color:var(--green);color:var(--green);background:var(--green-bg);}
+.count-pill{background:var(--green-bg);color:var(--green);border-radius:20px;
+  font-size:10px;font-weight:700;padding:2px 8px;font-family:'JetBrains Mono',monospace;}
+
+/* ── ACTION BUTTONS ── */
+.act-row{display:flex;gap:8px;margin-top:14px;}
+.save-btn{flex:1;padding:13px;background:var(--green);border:none;border-radius:11px;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .18s;box-shadow:0 3px 12px rgba(12,122,104,.25);}
+.save-btn:hover{background:var(--green-h);transform:translateY(-1px);}
+.clear-btn{padding:13px 16px;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:11px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:var(--muted);cursor:pointer;transition:all .18s;}
+.clear-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* ── TABS ── */
+.tab-bar{display:flex;border-bottom:1.5px solid var(--border);background:var(--card);
+  position:sticky;top:58px;z-index:100;}
+.tab-btn{flex:1;padding:13px 8px;border:none;border-bottom:3px solid transparent;
+  margin-bottom:-1.5px;background:transparent;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green);}
+.tab-btn:hover:not(.active){color:var(--text2);}
+.s-pill{background:var(--green);color:#fff;border-radius:20px;font-size:10px;
+  font-weight:800;padding:1px 7px;min-width:18px;text-align:center;}
+.s-pill.z{background:var(--border2);}
+.pane{display:none;flex-direction:column;gap:14px;padding:18px 16px 36px;}
+.pane.active{display:flex;}
+
+/* ── WA PREVIEW ── */
+.msg-lbl{font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--muted);
+  text-transform:uppercase;display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.badge{border-radius:5px;padding:2px 7px;font-size:9px;font-weight:700;}
+.b1{background:var(--green-bg);color:var(--green);}
+.b2{background:var(--gold-bg);color:var(--gold);}
+.wa-wrap{background:#0b141a;
+  background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.025) 1px,transparent 0);
+  background-size:18px 18px;border-radius:12px;overflow:hidden;border:1px solid #1e2a30;}
+.wa-topbar{background:#1f2c34;padding:9px 12px;display:flex;align-items:center;gap:8px;}
+.wa-av{width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,#128c7e,var(--green-wa));
+  display:flex;align-items:center;justify-content:center;font-size:14px;}
+.wa-name{font-size:12px;font-weight:700;color:#e9edef;flex:1;}
+.wa-status{font-size:10px;color:#8696a0;}
+.wa-body{padding:10px 12px 12px;}
+.bubble{background:#005c4b;border-radius:12px 2px 12px 12px;padding:9px 12px 20px;
+  max-width:96%;margin-left:auto;position:relative;
+  font-family:-apple-system,'Helvetica Neue',sans-serif;
+  font-size:13.5px;line-height:1.55;color:#e9edef;
+  word-break:break-word;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.btime{position:absolute;bottom:5px;right:9px;font-size:10px;color:rgba(233,237,239,.55);}
+.btick{font-size:11px;color:#53bdeb;}
+.bubble.eb{background:rgba(0,92,75,.35);font-size:12px;font-style:italic;color:rgba(233,237,239,.4);}
+.raw-out{background:var(--card);border:1.5px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.7;
+  color:var(--text2);white-space:pre-wrap;word-break:break-word;
+  max-height:90px;overflow-y:auto;}
+.raw-out.er{color:var(--muted);}
+.raw-out::-webkit-scrollbar{width:3px;}
+.raw-out::-webkit-scrollbar-thumb{background:var(--border);}
+.copy-btn{width:100%;padding:12px;border:none;border-radius:10px;
+  font-family:'Syne',sans-serif;font-size:13.5px;font-weight:700;color:#fff;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:all .18s;position:relative;overflow:hidden;}
+.copy-btn.c1{background:var(--green);box-shadow:0 3px 10px rgba(12,122,104,.2);}
+.copy-btn.c1:hover{background:var(--green-h);transform:translateY(-1px);}
+.copy-btn.c2{background:var(--gold-bg);color:var(--gold);border:1.5px solid var(--gold);}
+.copy-btn.c2:hover{background:#fde8b6;transform:translateY(-1px);}
+.copy-btn .rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);
+  transform:scale(0);animation:rip .6s linear;pointer-events:none;}
+@keyframes rip{to{transform:scale(4);opacity:0;}}
+.m2block{display:none;}
+.m2block.show{display:flex;flex-direction:column;gap:10px;}
+.pane-div{height:1px;background:var(--border);margin:2px 0;}
+
+/* ── SAVED ── */
+.no-saved{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+.no-saved .big{font-size:40px;margin-bottom:10px;}
+.saved-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:13px 14px;box-shadow:var(--sh);animation:rIn .2s ease;transition:border-color .2s;}
+.saved-card:hover{border-color:var(--green);}
+.sc-route{font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px;}
+.sc-meta{font-size:11.5px;color:var(--muted);margin-bottom:3px;
+  font-family:'JetBrains Mono',monospace;line-height:1.6;}
+.sc-ts{font-size:10px;color:var(--muted);margin-bottom:9px;
+  font-family:'JetBrains Mono',monospace;opacity:.7;}
+.sc-btns{display:flex;gap:7px;}
+.sc-load{flex:1;padding:9px;background:var(--green-bg);border:1.5px solid var(--green);
+  border-radius:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:var(--green);cursor:pointer;transition:all .18s;}
+.sc-load:hover{background:var(--green);color:#fff;}
+.sc-del{padding:9px 14px;background:var(--red-bg);border:1.5px solid var(--red);
+  border-radius:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:var(--red);cursor:pointer;transition:all .18s;}
+.sc-del:hover{background:var(--red);color:#fff;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--text);color:#fff;font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;padding:10px 22px;border-radius:100px;
+  box-shadow:0 6px 20px rgba(0,0,0,.2);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index:9999;white-space:nowrap;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeUp .25s ease both;}
+
+/* ── TRIP TOGGLE ── */
+.trip-wrap{display:flex;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:11px;padding:4px;gap:4px;margin-bottom:14px;}
+.trip-btn{flex:1;padding:11px;border:none;border-radius:8px;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:var(--muted);background:transparent;
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.trip-btn.active{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(12,122,104,.25);}
+/* Return section */
+.rt-section{display:none;}
+.rt-section.show{display:block;animation:fadeUp .25s ease;}
+.rt-sec-title{font-size:10px;font-weight:800;letter-spacing:2.5px;
+  text-transform:uppercase;display:flex;align-items:center;gap:10px;margin:20px 0 10px;
+  color:var(--green);}
+.rt-sec-title::after{content:'';flex:1;height:1px;background:var(--green-bg);}
+
+/* On very small screens hide the arrow separator */
+@media(max-width:380px){.arr{display:none;}.g3{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ GOOGLE DRIVE SYNC BANNER ═══ -->
+<div id="gdBanner" style="
+  background:#1a1a2e;color:#e0e0e0;padding:10px 18px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
+  border-bottom:2px solid #0c7a68;position:sticky;top:0;z-index:300;">
+  <span style="font-size:18px">☁️</span>
+  <span id="gdStatus" style="flex:1">Not connected to Google Drive — data saves locally only</span>
+  <button id="gdSignInBtn" onclick="gdSignIn()" style="
+    padding:7px 16px;background:#0c7a68;border:none;border-radius:8px;
+    color:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+    cursor:pointer;white-space:nowrap;">🔗 Connect Google Drive</button>
+  <button id="gdSignOutBtn" onclick="gdSignOut()" style="
+    display:none;padding:7px 16px;background:transparent;
+    border:1.5px solid #555;border-radius:8px;
+    color:#aaa;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+    cursor:pointer;white-space:nowrap;">Sign Out</button>
+  <button id="gdSyncBtn" onclick="gdSyncNow()" style="
+    display:none;padding:7px 16px;background:#096055;border:none;border-radius:8px;
+    color:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+    cursor:pointer;white-space:nowrap;">🔄 Sync Now</button>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✈️</div>
+    <div>
+      <div class="logo-name">WA <em>Flight</em> Composer</div>
+      <div class="logo-sub">by Ajmal</div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+<div class="form-panel">
+
+  <!-- TRIP TYPE -->
+  <div class="trip-wrap">
+    <button class="trip-btn active" id="tripBtnOW" onclick="setTripType('ow')">✈️ One Way</button>
+    <button class="trip-btn" id="tripBtnRT" onclick="setTripType('rt')">🔁 Round Trip</button>
+  </div>
+
+  <div class="sec-title">✈️ Flight Details</div>
+
+  <!-- DATE -->
+  <div class="card">
+    <div class="card-head">📅 Date of Travel</div>
+    <div class="f"><label>Date</label>
+      <input type="date" id="travelDate" oninput="up()"/>
+    </div>
+  </div>
+
+  <!-- ROUTE -->
+  <div class="card">
+    <div class="card-head">🛫 Route</div>
+    <div class="g3">
+      <div class="f"><label>From (IATA)</label>
+        <input type="text" id="fromCode" placeholder="COK" maxlength="4"
+          oninput="this.value=this.value.toUpperCase();up()"/>
+      </div>
+      <div class="arr">→</div>
+      <div class="f"><label>To (IATA)</label>
+        <input type="text" id="toCode" placeholder="BHX" maxlength="4"
+          oninput="this.value=this.value.toUpperCase();up()"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- FARE + BAGGAGE (dynamic multiple rows) -->
+  <div class="card">
+    <div class="card-hrow">
+      <div class="card-head">💰 Fare &amp; 🧳 Baggage
+        <span class="count-pill" id="fbCount">1</span>
+      </div>
+      <div class="card-hrow-right">
+        <button class="bold-btn" id="boldBtn" onclick="toggleBold()" title="Bold fare in WhatsApp"><b>B</b></button>
+      </div>
+    </div>
+    <div class="bold-hint" id="boldHint">Press <b>B</b> → fare amount will be *bold* in WhatsApp</div>
+    <div style="margin-top:10px">
+      <div class="dyn-list" id="fbList"></div>
+      <button class="add-row" onclick="addFareRow('','','')">＋ Add Another Fare &amp; Baggage</button>
+    </div>
+  </div>
+
+  <!-- TRANSITS -->
+  <div class="card">
+    <div class="card-hrow">
+      <div class="card-head">🔄 Transits / Layovers
+        <span class="count-pill" id="tCount">0</span>
+      </div>
+    </div>
+    <div class="dyn-list" id="tList"></div>
+    <button class="add-row" onclick="addTransit('',0,0)">＋ Add Transit</button>
+  </div>
+
+  <!-- RETURN SECTION -->
+  <div class="rt-section" id="rtSection">
+    <div class="rt-sec-title">🔁 Return Flight</div>
+
+    <div class="card">
+      <div class="card-head">📅 Return Date &amp; 🛫 Route</div>
+      <div class="f" style="margin-bottom:10px"><label>Return Date</label>
+        <input type="date" id="rtDate" oninput="up()"/>
+      </div>
+      <div class="g3">
+        <div class="f"><label>From (IATA)</label>
+          <input type="text" id="rtFrom" placeholder="BHX" maxlength="4"
+            oninput="this.value=this.value.toUpperCase();up()"/>
+        </div>
+        <div class="arr">→</div>
+        <div class="f"><label>To (IATA)</label>
+          <input type="text" id="rtTo" placeholder="COK" maxlength="4"
+            oninput="this.value=this.value.toUpperCase();up()"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hrow">
+        <div class="card-head">💰 Return Fare &amp; 🧳 Baggage
+          <span class="count-pill" id="rtFbCount">0</span>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="dyn-list" id="rtFbList"></div>
+        <button class="add-row" onclick="addRtFareRow('','','')">＋ Add Fare &amp; Baggage</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hrow">
+        <div class="card-head">🔄 Return Transits
+          <span class="count-pill" id="rtTCount">0</span>
+        </div>
+      </div>
+      <div class="dyn-list" id="rtTList"></div>
+      <button class="add-row" onclick="addRtTransit('',0,0)">＋ Add Transit</button>
+    </div>
+  </div>
+
+  <div class="sec-title">➕ Additional Info <span style="font-size:9px;letter-spacing:1px;color:var(--green);font-weight:700">(→ Message 2)</span></div>
+
+  <!-- AIRLINES -->
+  <div class="card">
+    <div class="card-hrow">
+      <label class="chk-label">
+        <input type="checkbox" id="chkAirlines" onchange="toggleDim('airlines');up()"/>
+        <span class="chk-box"></span>
+        <span class="chk-txt">✈️ Airlines</span>
+      </label>
+      <div class="card-hrow-right">
+        <span class="count-pill" id="aCount">0</span>
+        <button class="set-btn" id="setBtnAirlines" onclick="toggleSettings('airlines')" title="Manage presets">⚙️</button>
+      </div>
+    </div>
+    <div class="settings-panel" id="settingsAirlines">
+      <div class="set-panel-title">⚙️ Preset Airline Options</div>
+      <div id="airlinePresetList"></div>
+      <div class="set-add-row">
+        <input type="text" id="newAirlineOpt" placeholder="e.g. Air India, Emirates…"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();addPreset('airlines');}"/>
+        <button class="set-add-btn" onclick="addPreset('airlines')">＋ Add</button>
+      </div>
+    </div>
+    <div class="addl-body dim" id="airlinesBody">
+      <div class="dyn-list" id="aList"></div>
+      <button class="add-row" onclick="addAirline('')">＋ Add Airline</button>
+    </div>
+  </div>
+
+  <!-- PORTAL -->
+  <div class="card">
+    <div class="card-hrow">
+      <label class="chk-label">
+        <input type="checkbox" id="chkPortal" onchange="toggleDim('portal');up()"/>
+        <span class="chk-box"></span>
+        <span class="chk-txt">🌐 Portal</span>
+      </label>
+      <button class="set-btn" id="setBtnPortal" onclick="toggleSettings('portal')" title="Manage presets">⚙️</button>
+    </div>
+    <div class="settings-panel" id="settingsPortal">
+      <div class="set-panel-title">⚙️ Preset Portal Options</div>
+      <div id="portalPresetList"></div>
+      <div class="set-add-row">
+        <input type="text" id="newPortalOpt" placeholder="e.g. MakeMyTrip, Akbar…"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();addPreset('portals');}"/>
+        <button class="set-add-btn" onclick="addPreset('portals')">＋ Add</button>
+      </div>
+    </div>
+    <div class="addl-body dim" id="portalBody"></div>
+  </div>
+
+  <!-- COMMISSION -->
+  <div class="card">
+    <div class="card-hrow">
+      <label class="chk-label">
+        <input type="checkbox" id="chkComm" onchange="toggleDim('comm');up()"/>
+        <span class="chk-box"></span>
+        <span class="chk-txt">💼 Commission</span>
+      </label>
+    </div>
+    <div class="addl-body dim" id="commBody">
+      <div class="f"><label>Commission Amount (₹)</label>
+        <input type="text" id="commission" placeholder="2,500" oninput="up()"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- BY -->
+  <div class="card">
+    <div class="card-hrow">
+      <label class="chk-label">
+        <input type="checkbox" id="chkBy" onchange="toggleDim('by');up()"/>
+        <span class="chk-box"></span>
+        <span class="chk-txt">👤 By</span>
+      </label>
+      <button class="set-btn" id="setBtnBy" onclick="toggleSettings('by')" title="Manage presets">⚙️</button>
+    </div>
+    <div class="settings-panel" id="settingsBy">
+      <div class="set-panel-title">⚙️ Preset Names</div>
+      <div id="byPresetList"></div>
+      <div class="set-add-row">
+        <input type="text" id="newByOpt" placeholder="e.g. Ajmal, Azhar…"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();addPreset('by');}"/>
+        <button class="set-add-btn" onclick="addPreset('by')">＋ Add</button>
+      </div>
+    </div>
+    <div class="addl-body dim" id="byBody"></div>
+  </div>
+
+  <div class="act-row">
+    <button class="save-btn" onclick="saveEntry()">💾 Save Entry</button>
+    <button class="clear-btn" onclick="clearAll()">🗑 Clear</button>
+  </div>
+
+</div><!-- /form-panel -->
+
+<!-- PREVIEW + SAVED -->
+<div class="right-panel">
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabPrevBtn" onclick="showTab('prev')">👁 Preview</button>
+    <button class="tab-btn" id="tabSaveBtn" onclick="showTab('save')">
+      💾 Saved <span class="s-pill z" id="sPill">0</span>
+    </button>
+  </div>
+
+  <div class="pane active" id="panePreview">
+    <div>
+      <div class="msg-lbl">Message 1 <span class="badge b1">Flight Info</span></div>
+      <div class="wa-wrap">
+        <div class="wa-topbar">
+          <div class="wa-av">✈</div>
+          <div><div class="wa-name">Travel Agent</div><div class="wa-status">online</div></div>
+        </div>
+        <div class="wa-body">
+          <div class="bubble eb" id="bub1">Fill details to preview…<span class="btime"></span></div>
+        </div>
+      </div>
+      <div class="raw-out er" id="raw1" style="margin-top:8px">Your message will appear here…</div>
+      <button class="copy-btn c1" style="margin-top:8px" id="cb1" onclick="copyMsg(1,event)">
+        📋 <span id="cl1">Copy Message 1</span>
+      </button>
+    </div>
+
+    <div class="pane-div"></div>
+
+    <div class="m2block" id="m2block">
+      <div class="msg-lbl">Message 2 <span class="badge b2">Additional Info</span></div>
+      <div class="wa-wrap">
+        <div class="wa-topbar">
+          <div class="wa-av">✈</div>
+          <div><div class="wa-name">Travel Agent</div><div class="wa-status">online</div></div>
+        </div>
+        <div class="wa-body">
+          <div class="bubble eb" id="bub2">Tick a checkbox above…<span class="btime"></span></div>
+        </div>
+      </div>
+      <div class="raw-out er" id="raw2" style="margin-top:8px">—</div>
+      <button class="copy-btn c2" style="margin-top:8px" id="cb2" onclick="copyMsg(2,event)">
+        📋 <span id="cl2">Copy Message 2</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="pane" id="paneSave">
+    <div class="no-saved" id="noSaved">
+      <div class="big">📂</div>
+      No saved entries yet.<br>Fill the form and tap <b>Save Entry</b>.
+    </div>
+    <div id="savedList"></div>
+  </div>
+</div>
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══ STATE ═══ */
+var boldOn=false, tidCtr=0, aidCtr=0, fbCtr=0;
+var tripType='ow', rtFbCtr=0, rtTidCtr=0;
+var SK='waf_v4', SKEY='waf_settings';
+
+/* ═══════════════════════════════════════════════════════
+   GOOGLE DRIVE SYNC
+   ─────────────────────────────────────────────────────
+   STEP 1: Replace the value below with YOUR OAuth Client ID
+   Get it from: https://console.cloud.google.com
+   APIs & Services → Credentials → OAuth 2.0 Client ID
+   ═══════════════════════════════════════════════════════ */
+var GD_CLIENT_ID = '270587739792-irk04khko09abqcq60un4qn4q3pljaug.apps.googleusercontent.com.apps.googleusercontent.com';
+
+var GD_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+var GD_DATA_FILE  = 'waf_data.json';      /* saved entries */
+var GD_SETTINGS_FILE = 'waf_settings.json'; /* presets */
+var gdToken = null;          /* current OAuth access token */
+var gdDataFileId = null;     /* Drive file ID for data */
+var gdSettingsFileId = null; /* Drive file ID for settings */
+var gdSyncing = false;
+
+/* ── Auth ── */
+function gdSignIn(){
+  if(!window.google){toast('⚠️ Google API not loaded yet, try again','#c0362a');return;}
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: GD_CLIENT_ID,
+    scope: GD_SCOPE,
+    callback: function(resp){
+      if(resp.error){toast('⚠️ Sign-in failed: '+resp.error,'#c0362a');return;}
+      gdToken = resp.access_token;
+      localStorage.setItem('gd_token_hint','1'); /* just a flag, not the token */
+      gdOnSignedIn();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function gdSignOut(){
+  if(gdToken) google.accounts.oauth2.revoke(gdToken, function(){});
+  gdToken = null; gdDataFileId = null; gdSettingsFileId = null;
+  localStorage.removeItem('gd_token_hint');
+  gdSetUI(false);
+  toast('👋 Signed out from Google Drive');
+}
+
+function gdOnSignedIn(){
+  gdSetUI(true);
+  toast('✅ Connected to Google Drive — syncing…');
+  /* load data from Drive, then render */
+  gdLoadAll();
+}
+
+function gdSetUI(on){
+  var banner = document.getElementById('gdBanner');
+  var statusEl = document.getElementById('gdStatus');
+  var signInBtn = document.getElementById('gdSignInBtn');
+  var signOutBtn = document.getElementById('gdSignOutBtn');
+  var syncBtn = document.getElementById('gdSyncBtn');
+  if(on){
+    banner.style.background = '#0a2e26';
+    statusEl.textContent = '☁️ Connected to Google Drive — data syncs across all PCs';
+    statusEl.style.color = '#7ecfc0';
+    signInBtn.style.display = 'none';
+    signOutBtn.style.display = '';
+    syncBtn.style.display = '';
+  } else {
+    banner.style.background = '#1a1a2e';
+    statusEl.textContent = 'Not connected to Google Drive — data saves locally only';
+    statusEl.style.color = '#e0e0e0';
+    signInBtn.style.display = '';
+    signOutBtn.style.display = 'none';
+    syncBtn.style.display = 'none';
+  }
+}
+
+function gdSyncNow(){
+  if(!gdToken){toast('⚠️ Not signed in','#c0362a');return;}
+  gdLoadAll();
+  toast('🔄 Syncing from Google Drive…');
+}
+
+/* ── Drive API helpers ── */
+function gdFetch(url, opts){
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  opts.headers['Authorization'] = 'Bearer ' + gdToken;
+  return fetch(url, opts);
+}
+
+/* Find a file in appDataFolder by name, return its ID or null */
+function gdFindFile(name){
+  return gdFetch(
+    'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q=name%3D%22'+encodeURIComponent(name)+'%22'
+  ).then(function(r){return r.json();})
+   .then(function(data){
+     if(data.files && data.files.length > 0) return data.files[0].id;
+     return null;
+   });
+}
+
+/* Read a file's content by ID */
+function gdReadFile(fileId){
+  return gdFetch(
+    'https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media'
+  ).then(function(r){return r.text();});
+}
+
+/* Write (create or update) a JSON file in appDataFolder */
+function gdWriteFile(fileId, name, data){
+  var body = JSON.stringify(data);
+  var mime = 'application/json';
+  if(!fileId){
+    /* Create */
+    var meta = JSON.stringify({name: name, parents: ['appDataFolder']});
+    var form = '--b\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--b\r\nContent-Type: '+mime+'\r\n\r\n'+body+'\r\n--b--';
+    return gdFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: {'Content-Type': 'multipart/related; boundary=b'},
+      body: form
+    }).then(function(r){return r.json();}).then(function(d){return d.id;});
+  } else {
+    /* Update */
+    return gdFetch('https://www.googleapis.com/upload/drive/v3/files/'+fileId+'?uploadType=media', {
+      method: 'PATCH',
+      headers: {'Content-Type': mime},
+      body: body
+    }).then(function(r){return r.json();}).then(function(){return fileId;});
+  }
+}
+
+/* ── Load all from Drive ── */
+function gdLoadAll(){
+  if(!gdToken) return;
+  gdSyncing = true;
+  Promise.all([
+    gdFindFile(GD_DATA_FILE),
+    gdFindFile(GD_SETTINGS_FILE)
+  ]).then(function(ids){
+    gdDataFileId     = ids[0];
+    gdSettingsFileId = ids[1];
+    var reads = [];
+    reads.push(gdDataFileId     ? gdReadFile(gdDataFileId)     : Promise.resolve(null));
+    reads.push(gdSettingsFileId ? gdReadFile(gdSettingsFileId) : Promise.resolve(null));
+    return Promise.all(reads);
+  }).then(function(texts){
+    /* data */
+    if(texts[0]){
+      try{
+        var arr = JSON.parse(texts[0]);
+        localStorage.setItem(SK, JSON.stringify(arr));
+      }catch(e){}
+    }
+    /* settings */
+    if(texts[1]){
+      try{
+        var s = JSON.parse(texts[1]);
+        localStorage.setItem(SKEY, JSON.stringify(s));
+      }catch(e){}
+    }
+    gdSyncing = false;
+    /* Re-render everything with fresh data */
+    renderSaved(); updPill();
+    refreshAirlineSelects();
+    refreshPortalField();
+    refreshByField();
+    toast('☁️ Synced from Drive!');
+  }).catch(function(e){
+    gdSyncing = false;
+    toast('⚠️ Drive sync error: '+e.message,'#c0362a');
+  });
+}
+
+/* ── Save to Drive after every write ── */
+function gdPushData(arr){
+  if(!gdToken) return;
+  gdWriteFile(gdDataFileId, GD_DATA_FILE, arr).then(function(id){
+    gdDataFileId = id;
+  }).catch(function(e){ toast('⚠️ Drive save error','#c0362a'); });
+}
+
+function gdPushSettings(s){
+  if(!gdToken) return;
+  gdWriteFile(gdSettingsFileId, GD_SETTINGS_FILE, s).then(function(id){
+    gdSettingsFileId = id;
+  }).catch(function(e){ toast('⚠️ Drive settings save error','#c0362a'); });
+}
+
+/* ── Auto sign-in attempt if user already signed in before ── */
+window.addEventListener('load', function(){
+  /* We can't silently restore the token (OAuth security), so just show a hint */
+  if(localStorage.getItem('gd_token_hint')){
+    document.getElementById('gdStatus').textContent =
+      '🔄 Was connected before — click Connect to sync again';
+  }
+});
+
+/* ═══ HELPERS ═══ */
+function $(id){return document.getElementById(id);}
+function mk(tag,cls){var e=document.createElement(tag);if(cls)e.className=cls;return e;}
+function xh(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function xa(t){return String(t==null?'':t).replace(/"/g,'&quot;');}
+function fmtDate(s){
+  if(!s)return'';
+  var p=s.split('-');
+  return ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][parseInt(p[1])-1]+' '+parseInt(p[2]);
+}
+function fmtDur(h,m){
+  h=parseInt(h)||0;m=parseInt(m)||0;
+  if(!h&&!m)return'';
+  if(h&&m)return h+'h '+m+'m';
+  return h?h+'h':m+'m';
+}
+function getTime(){
+  var n=new Date(),h=n.getHours(),m=n.getMinutes();
+  return (h%12||12)+':'+(m<10?'0':'')+m+' '+(h>=12?'PM':'AM');
+}
+function toast(msg,color){
+  var t=$('toast');t.textContent=msg;t.style.background=color||'var(--text)';
+  t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);
+}
+
+/* ═══ SETTINGS STORAGE ═══ */
+function getSettings(){
+  try{var s=localStorage.getItem(SKEY);return s?JSON.parse(s):{airlines:[],portals:[],by:[]};}
+  catch(e){return{airlines:[],portals:[],by:[]};}
+}
+function putSettings(s){
+  try{localStorage.setItem(SKEY,JSON.stringify(s));}catch(e){}
+  gdPushSettings(s);
+}
+function getPresets(type){return getSettings()[type]||[];}
+
+function addPreset(type){
+  var iid=type==='airlines'?'newAirlineOpt':'newPortalOpt';
+  var inp=$(iid),val=inp.value.trim();
+  if(!val){inp.focus();return;}
+  var s=getSettings();if(!s[type])s[type]=[];
+  if(s[type].indexOf(val)===-1){s[type].push(val);putSettings(s);}
+  inp.value='';renderPresets(type);
+  if(type==='airlines')refreshAirlineSelects();
+  else if(type==='portals')refreshPortalField();
+  else refreshByField();
+  toast('✅ "'+val+'" added');
+}
+function removePreset(type,idx){
+  var s=getSettings();if(s[type])s[type].splice(idx,1);putSettings(s);
+  renderPresets(type);
+  if(type==='airlines')refreshAirlineSelects();
+  else if(type==='portals')refreshPortalField();
+  else refreshByField();
+}
+function renderPresets(type){
+  var lid=type==='airlines'?'airlinePresetList':type==='portals'?'portalPresetList':'byPresetList';
+  var opts=getPresets(type),list=$(lid);
+  if(!list)return;list.innerHTML='';
+  if(!opts.length){list.innerHTML='<div class="preset-empty">No presets yet. Add some below.</div>';return;}
+  opts.forEach(function(opt,i){
+    var d=mk('div','preset-item');
+    d.innerHTML='<span class="preset-name">'+xh(opt)+'</span>'+
+      '<button class="preset-del" onclick="removePreset(\''+type+'\','+i+')" title="Remove">×</button>';
+    list.appendChild(d);
+  });
+}
+function toggleSettings(type){
+  var pid=type==='airlines'?'settingsAirlines':type==='portals'?'settingsPortal':'settingsBy';
+  var bid=type==='airlines'?'setBtnAirlines':type==='portals'?'setBtnPortal':'setBtnBy';
+  var panel=$(pid),btn=$(bid);if(!panel)return;
+  var open=panel.classList.contains('open');
+  panel.classList.toggle('open',!open);
+  if(btn)btn.classList.toggle('active',!open);
+  if(!open)renderPresets(type);
+}
+
+/* ═══ TABS ═══ */
+function showTab(name){
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  $(name==='prev'?'panePreview':'paneSave').classList.add('active');
+  $(name==='prev'?'tabPrevBtn':'tabSaveBtn').classList.add('active');
+}
+
+/* ═══ FARE + BAGGAGE ROWS ═══ */
+function addFareRow(fare,checkin,cabin){
+  var id=++fbCtr;
+  var row=mk('div','dyn-row fb-grid');
+  row.dataset.id=id;
+  row.innerHTML=
+    '<div class="f fb-fare"><label>Fare (₹)</label>'+
+    '<input type="text" class="fb-f" placeholder="1,69,617" value="'+xa(fare||'')+'" oninput="up()"/></div>'+
+    '<div class="f"><label>Check-in (kg)</label>'+
+    '<input type="number" class="fb-c" placeholder="46" value="'+xa(checkin||'')+'" oninput="up()"/></div>'+
+    '<div class="f"><label>Cabin (kg)</label>'+
+    '<input type="number" class="fb-b" placeholder="7" value="'+xa(cabin||'')+'" oninput="up()"/></div>'+
+    '<button class="rm-btn" onclick="rmFareRow('+id+')" title="Remove">×</button>';
+  $('fbList').appendChild(row);
+  updFbCnt();up();
+}
+function rmFareRow(id){
+  var rows=document.querySelectorAll('#fbList .dyn-row');
+  var row=document.querySelector('#fbList [data-id="'+id+'"]');
+  if(!row)return;
+  if(rows.length<=1){
+    row.querySelector('.fb-f').value='';
+    row.querySelector('.fb-c').value='';
+    row.querySelector('.fb-b').value='';
+    up();return;
+  }
+  row.style.cssText+=';opacity:0;transform:translateY(-4px);transition:all .15s';
+  setTimeout(function(){row.remove();updFbCnt();up();},150);
+}
+function updFbCnt(){$('fbCount').textContent=document.querySelectorAll('#fbList .dyn-row').length;}
+function getFareRows(){
+  return Array.from(document.querySelectorAll('#fbList .dyn-row')).map(function(r){
+    return{fare:r.querySelector('.fb-f').value.trim(),
+           checkin:r.querySelector('.fb-c').value.trim(),
+           cabin:r.querySelector('.fb-b').value.trim()};
+  }).filter(function(r){return r.fare||r.checkin||r.cabin;});
+}
+
+/* ═══ TRIP TYPE ═══ */
+function setTripType(type){
+  tripType=type;
+  $('tripBtnOW').classList.toggle('active',type==='ow');
+  $('tripBtnRT').classList.toggle('active',type==='rt');
+  var sec=$('rtSection');
+  if(type==='rt'){
+    sec.classList.add('show');
+    if(!$('rtFrom').value) $('rtFrom').value=$('toCode').value||'';
+    if(!$('rtTo').value)   $('rtTo').value=$('fromCode').value||'';
+    if(!document.querySelectorAll('#rtFbList .dyn-row').length) addRtFareRow('','','');
+  }else{
+    sec.classList.remove('show');
+  }
+  up();
+}
+
+/* ═══ RETURN FARE ROWS ═══ */
+function addRtFareRow(fare,checkin,cabin){
+  var id=++rtFbCtr;
+  var row=mk('div','dyn-row fb-grid');row.dataset.id=id;
+  row.innerHTML=
+    '<div class="f fb-fare"><label>Fare (₹)</label>'+
+    '<input type="text" class="rb-f" placeholder="1,45,000" value="'+xa(fare||'')+'" oninput="up()"/></div>'+
+    '<div class="f"><label>Check-in (kg)</label>'+
+    '<input type="number" class="rb-c" placeholder="46" value="'+xa(checkin||'')+'" oninput="up()"/></div>'+
+    '<div class="f"><label>Cabin (kg)</label>'+
+    '<input type="number" class="rb-b" placeholder="7" value="'+xa(cabin||'')+'" oninput="up()"/></div>'+
+    '<button class="rm-btn" onclick="rmRtFareRow('+id+')" title="Remove">×</button>';
+  $('rtFbList').appendChild(row);updRtFbCnt();up();
+}
+function rmRtFareRow(id){
+  var rows=document.querySelectorAll('#rtFbList .dyn-row');
+  var row=document.querySelector('#rtFbList [data-id="'+id+'"]');if(!row)return;
+  if(rows.length<=1){row.querySelector('.rb-f').value='';row.querySelector('.rb-c').value='';row.querySelector('.rb-b').value='';up();return;}
+  row.style.cssText+=';opacity:0;transform:translateY(-4px);transition:all .15s';
+  setTimeout(function(){row.remove();updRtFbCnt();up();},150);
+}
+function updRtFbCnt(){$('rtFbCount').textContent=document.querySelectorAll('#rtFbList .dyn-row').length;}
+function getRtFareRows(){
+  return Array.from(document.querySelectorAll('#rtFbList .dyn-row')).map(function(r){
+    return{fare:r.querySelector('.rb-f').value.trim(),
+           checkin:r.querySelector('.rb-c').value.trim(),
+           cabin:r.querySelector('.rb-b').value.trim()};
+  }).filter(function(r){return r.fare||r.checkin||r.cabin;});
+}
+
+/* ═══ RETURN TRANSIT ROWS ═══ */
+function addRtTransit(via,th,tm){
+  var id=++rtTidCtr;
+  var row=mk('div','dyn-row tr-grid');row.dataset.id=id;
+  row.innerHTML=
+    '<div class="f"><label>Via City</label>'+
+    '<input type="text" class="rtv" placeholder="Dubai" value="'+xa(via||'')+'" oninput="up()"/></div>'+
+    '<div class="f"><label>Hours</label>'+
+    '<select class="rth" onchange="up()">'+hOpts(th)+'</select></div>'+
+    '<div class="f"><label>Mins</label>'+
+    '<select class="rtm" onchange="up()">'+mOpts(tm)+'</select></div>'+
+    '<button class="rm-btn" onclick="rmRtTransit('+id+')" title="Remove">×</button>';
+  $('rtTList').appendChild(row);updRtTCnt();up();
+}
+function rmRtTransit(id){
+  var rows=document.querySelectorAll('#rtTList .dyn-row');
+  var row=document.querySelector('#rtTList [data-id="'+id+'"]');if(!row)return;
+  if(rows.length<=1){row.querySelector('.rtv').value='';row.querySelector('.rth').selectedIndex=0;row.querySelector('.rtm').selectedIndex=0;up();return;}
+  row.style.cssText+=';opacity:0;transform:translateY(-4px);transition:all .15s';
+  setTimeout(function(){row.remove();updRtTCnt();up();},150);
+}
+function updRtTCnt(){$('rtTCount').textContent=document.querySelectorAll('#rtTList .dyn-row').length;}
+function getRtTransits(){
+  return Array.from(document.querySelectorAll('#rtTList .dyn-row')).map(function(r){
+    return{via:r.querySelector('.rtv').value.trim(),
+           th:parseInt(r.querySelector('.rth').value)||0,
+           tm:parseInt(r.querySelector('.rtm').value)||0};
+  }).filter(function(t){return t.via||t.th||t.tm;});
+}
+
+/* ═══ TRANSIT ROWS ═══ */
+function hOpts(sel){
+  sel=parseInt(sel)||0;var s='';
+  for(var i=0;i<24;i++)s+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+i+'h</option>';
+  return s;
+}
+function mOpts(sel){
+  sel=parseInt(sel)||0;
+  var ms=[0,5,10,15,20,25,30,35,40,45,50,55],s='';
+  ms.forEach(function(m){s+='<option value="'+m+'"'+(m===sel?' selected':'')+'>'+m+'m</option>';});
+  return s;
+}
+function addTransit(via,th,tm){
+  var id=++tidCtr;
+  var row=mk('div','dyn-row tr-grid');row.dataset.id=id;
+  row.innerHTML=
+    '<div class="f"><label>Via City</label>'+
+    '<input type="text" class="tv" placeholder="New Delhi" value="'+xa(via||'')+'" oninput="up()"/></div>'+
+    '<div class="f"><label>Hours</label>'+
+    '<select class="th" onchange="up()">'+hOpts(th)+'</select></div>'+
+    '<div class="f"><label>Mins</label>'+
+    '<select class="tm" onchange="up()">'+mOpts(tm)+'</select></div>'+
+    '<button class="rm-btn" onclick="rmTransit('+id+')" title="Remove">×</button>';
+  $('tList').appendChild(row);updTCnt();up();
+}
+function rmTransit(id){
+  var rows=document.querySelectorAll('#tList .dyn-row');
+  var row=document.querySelector('#tList [data-id="'+id+'"]');if(!row)return;
+  if(rows.length<=1){
+    row.querySelector('.tv').value='';
+    row.querySelector('.th').selectedIndex=0;
+    row.querySelector('.tm').selectedIndex=0;
+    up();return;
+  }
+  row.style.cssText+=';opacity:0;transform:translateY(-4px);transition:all .15s';
+  setTimeout(function(){row.remove();updTCnt();up();},150);
+}
+function updTCnt(){$('tCount').textContent=document.querySelectorAll('#tList .dyn-row').length;}
+function getTransits(){
+  return Array.from(document.querySelectorAll('#tList .dyn-row')).map(function(r){
+    return{via:r.querySelector('.tv').value.trim(),
+           th:parseInt(r.querySelector('.th').value)||0,
+           tm:parseInt(r.querySelector('.tm').value)||0};
+  }).filter(function(t){return t.via||t.th||t.tm;});
+}
+
+/* ═══ AIRLINE ROWS ═══ */
+function addAirline(val){
+  var id=++aidCtr;
+  var row=mk('div','dyn-row al-grid');row.dataset.id=id;
+  var presets=getPresets('airlines'),html='';
+  if(presets.length>0){
+    var isCust=val&&presets.indexOf(val)===-1;
+    var opts='<option value="">— Select Airline —</option>';
+    presets.forEach(function(p){
+      opts+='<option value="'+xa(p)+'"'+(p===val?' selected':'')+'>'+xh(p)+'</option>';
+    });
+    opts+='<option value="___other"'+(isCust?' selected':'')+'>✏️ Custom…</option>';
+    html='<div class="f" style="min-width:0"><label>Airline</label>'+
+      '<select class="av-sel" onchange="handleAirlineSel(this)">'+opts+'</select>'+
+      '<input type="text" class="av-cust custom-inp" placeholder="Type airline name"'+
+        ' value="'+xa(isCust?val:'')+'" style="'+(isCust?'':'display:none')+'" oninput="up()"/>'+
+      '</div>';
+  }else{
+    html='<div class="f" style="min-width:0"><label>Airline Name</label>'+
+      '<input type="text" class="av-cust" placeholder="Air India" value="'+xa(val||'')+'" oninput="up()"/>'+
+      '</div>';
+  }
+  html+='<button class="rm-btn" onclick="rmAirline('+id+')" title="Remove">×</button>';
+  row.innerHTML=html;$('aList').appendChild(row);updACnt();up();
+}
+function handleAirlineSel(sel){
+  var row=sel.closest('.dyn-row'),cust=row.querySelector('.av-cust');
+  if(sel.value==='___other'){cust.style.display='';cust.focus();}
+  else{cust.style.display='none';cust.value='';}
+  up();
+}
+function getAirlineRowVal(row){
+  var sel=row.querySelector('.av-sel'),cust=row.querySelector('.av-cust');
+  if(sel){return sel.value==='___other'?(cust?cust.value.trim():''):sel.value;}
+  return cust?cust.value.trim():'';
+}
+function refreshAirlineSelects(){
+  var vals=Array.from(document.querySelectorAll('#aList .dyn-row'))
+    .map(function(r){return getAirlineRowVal(r);});
+  $('aList').innerHTML='';aidCtr=0;
+  (vals.length?vals:['']).forEach(function(v){addAirline(v||'');});
+}
+function rmAirline(id){
+  var rows=document.querySelectorAll('#aList .dyn-row');
+  var row=document.querySelector('#aList [data-id="'+id+'"]');if(!row)return;
+  if(rows.length<=1){
+    var s=row.querySelector('.av-sel'),c=row.querySelector('.av-cust');
+    if(s){s.value='';if(c){c.style.display='none';c.value='';}}
+    else if(c)c.value='';
+    up();return;
+  }
+  row.style.cssText+=';opacity:0;transform:translateY(-4px);transition:all .15s';
+  setTimeout(function(){row.remove();updACnt();up();},150);
+}
+function updACnt(){$('aCount').textContent=document.querySelectorAll('#aList .dyn-row').length;}
+
+/* ═══ PORTAL FIELD ═══ */
+function buildPortalField(curVal){
+  var presets=getPresets('portals'),body=$('portalBody');if(!body)return;
+  curVal=curVal!==undefined?curVal:getPortalVal();
+  if(presets.length>0){
+    var isCust=curVal&&presets.indexOf(curVal)===-1;
+    var opts='<option value="">— Select Portal —</option>';
+    presets.forEach(function(p){
+      opts+='<option value="'+xa(p)+'"'+(p===curVal?' selected':'')+'>'+xh(p)+'</option>';
+    });
+    opts+='<option value="___other"'+(isCust?' selected':'')+'>✏️ Custom…</option>';
+    body.innerHTML='<div class="f"><label>Portal / Platform</label>'+
+      '<select id="portalSel" onchange="handlePortalSel()">'+opts+'</select>'+
+      '<input type="text" id="portal" class="custom-inp" placeholder="Type portal name"'+
+        ' value="'+xa(isCust?curVal:'')+'" style="'+(isCust?'':'display:none')+'" oninput="up()"/>'+
+      '</div>';
+  }else{
+    body.innerHTML='<div class="f"><label>Portal / Platform Name</label>'+
+      '<input type="text" id="portal" placeholder="MakeMyTrip, Cleartrip, Akbar…"'+
+        ' value="'+xa(curVal||'')+'" oninput="up()"/>'+
+      '</div>';
+  }
+  up();
+}
+function handlePortalSel(){
+  var sel=$('portalSel'),inp=$('portal');if(!sel||!inp)return;
+  if(sel.value==='___other'){inp.style.display='';inp.value='';inp.focus();}
+  else{inp.value=sel.value||'';inp.style.display='none';}
+  up();
+}
+function getPortalVal(){
+  var sel=$('portalSel'),inp=$('portal');
+  if(sel&&sel.style.display!=='none'&&getComputedStyle(sel).display!=='none'){
+    return sel.value==='___other'?(inp?inp.value.trim():''):sel.value;
+  }
+  return inp?inp.value.trim():'';
+}
+function refreshPortalField(){buildPortalField(getPortalVal());}
+
+/* ═══ BY FIELD ═══ */
+function buildByField(curVal){
+  var presets=getPresets('by'),body=$('byBody');if(!body)return;
+  curVal=curVal!==undefined?curVal:getByVal();
+  if(presets.length>0){
+    var isCust=curVal&&presets.indexOf(curVal)===-1;
+    var opts='<option value="">— Select —</option>';
+    presets.forEach(function(p){
+      opts+='<option value="'+xa(p)+'"'+(p===curVal?' selected':'')+'>'+xh(p)+'</option>';
+    });
+    opts+='<option value="___other"'+(isCust?' selected':'')+'>✏️ Custom…</option>';
+    body.innerHTML='<div class="f"><label>By (Agent / Person)</label>'+
+      '<select id="bySel" onchange="handleBySel()">'+opts+'</select>'+
+      '<input type="text" id="byVal" class="custom-inp" placeholder="Type name"'+
+        ' value="'+xa(isCust?curVal:'')+'" style="'+(isCust?'':'display:none')+'" oninput="up()"/>'+
+      '</div>';
+  }else{
+    body.innerHTML='<div class="f"><label>By (Agent / Person)</label>'+
+      '<input type="text" id="byVal" placeholder="e.g. Ajmal" value="'+xa(curVal||'')+'" oninput="up()"/>'+
+      '</div>';
+  }
+  up();
+}
+function handleBySel(){
+  var sel=$('bySel'),inp=$('byVal');if(!sel||!inp)return;
+  if(sel.value==='___other'){inp.style.display='';inp.value='';inp.focus();}
+  else{inp.value=sel.value||'';inp.style.display='none';}
+  up();
+}
+function getByVal(){
+  var sel=$('bySel'),inp=$('byVal');
+  if(sel&&getComputedStyle(sel).display!=='none'){
+    return sel.value==='___other'?(inp?inp.value.trim():''):sel.value;
+  }
+  return inp?inp.value.trim():'';
+}
+function refreshByField(){buildByField(getByVal());}
+
+/* ═══ DIM TOGGLE ═══ */
+function toggleDim(name){
+  var bm={airlines:'airlinesBody',portal:'portalBody',comm:'commBody',by:'byBody'};
+  var cm={airlines:'chkAirlines',portal:'chkPortal',comm:'chkComm',by:'chkBy'};
+  $(bm[name]).classList.toggle('dim',!$(cm[name]).checked);
+}
+
+/* ═══ BOLD TOGGLE ═══ */
+function toggleBold(){
+  boldOn=!boldOn;
+  $('boldBtn').classList.toggle('on',boldOn);
+  var h=$('boldHint');h.classList.toggle('on',boldOn);
+  h.innerHTML=boldOn
+    ?'✓ Fare will be <b style="color:var(--gold)">bold</b> in WhatsApp'
+    :'Press <b>B</b> → fare amount will be *bold* in WhatsApp';
+  up();
+}
+
+/* ═══ BUILD MESSAGES ═══ */
+/* ═══ BUILD FLIGHT BLOCK (shared helper) ═══ */
+function buildFlightBlock(date,from,to,fbs,ts){
+  var lines=[],rp=[];
+  if(date)rp.push(date);
+  if(from||to)rp.push((from||'?')+' → '+(to||'?'));
+  if(fbs.length===0){
+    if(rp.length)lines.push(rp.join(' | '));
+  }else if(fbs.length===1){
+    var fb=fbs[0];
+    if(fb.fare)rp.push('Fare: '+(boldOn?'*₹'+fb.fare+'*':'₹'+fb.fare));
+    if(rp.length)lines.push(rp.join(' | '));
+    var bags=[];
+    if(fb.checkin)bags.push(fb.checkin+'kg');
+    if(fb.cabin)bags.push(fb.cabin+'kg');
+    if(bags.length)lines.push('🧳 '+bags.join(' + ')+' baggage');
+  }else{
+    if(rp.length)lines.push(rp.join(' | '));
+    fbs.forEach(function(fb){
+      var p2=[];
+      if(fb.fare)p2.push('💰 Fare: '+(boldOn?'*₹'+fb.fare+'*':'₹'+fb.fare));
+      var bags=[];
+      if(fb.checkin)bags.push(fb.checkin+'kg');
+      if(fb.cabin)bags.push(fb.cabin+'kg');
+      if(bags.length)p2.push('🧳 '+bags.join(' + ')+' baggage');
+      if(p2.length)lines.push(p2.join(' | '));
+    });
+  }
+  ts.forEach(function(t){
+    var d=fmtDur(t.th,t.tm);
+    lines.push('🔄 Via '+t.via+(d?'('+d+')':''));
+  });
+  return lines.filter(Boolean).join('\n');
+}
+
+function buildM1(){
+  var date=fmtDate($('travelDate').value);
+  var from=$('fromCode').value.trim(),to=$('toCode').value.trim();
+  var outbound=buildFlightBlock(date,from,to,getFareRows(),getTransits());
+
+  if(tripType==='rt'){
+    var rtDate=fmtDate($('rtDate').value);
+    var rtFrom=$('rtFrom').value.trim(),rtTo=$('rtTo').value.trim();
+    var ret=buildFlightBlock(rtDate,rtFrom,rtTo,getRtFareRows(),getRtTransits());
+    var parts=[];
+    if(outbound)parts.push('✈️ '+outbound);
+    if(ret)parts.push('🔁 '+ret);
+    return parts.join('\n\n');
+  }
+  return outbound;
+}
+
+function buildM2(){
+  var lines=[];
+  if($('chkAirlines').checked){
+    var als=Array.from(document.querySelectorAll('#aList .dyn-row'))
+      .map(function(r){return getAirlineRowVal(r);}).filter(Boolean);
+    if(als.length)lines.push('✈️ '+als.join(' + '));
+  }
+  if($('chkPortal').checked){var p=getPortalVal();if(p)lines.push('🌐 Portal: '+p);}
+  if($('chkComm').checked){var c=$('commission').value.trim();if(c)lines.push('💼 Commission: ₹'+c);}
+  if($('chkBy').checked){var b=getByVal();if(b)lines.push('👤 By: '+b);}
+  return lines.join('\n');
+}
+
+/* ═══ UPDATE PREVIEW ═══ */
+function up(){
+  var t=getTime(),ts='<span class="btime">'+t+' <span class="btick">✓✓</span></span>';
+  var m1=buildM1(),b1=$('bub1'),r1=$('raw1');
+  if(!m1.trim()){
+    b1.className='bubble eb';b1.innerHTML='Fill details to preview…'+ts;
+    r1.className='raw-out er';r1.textContent='Your message will appear here…';
+  }else{
+    b1.className='bubble';
+    b1.innerHTML=xh(m1).replace(/\*([^*\n]+)\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')+ts;
+    r1.className='raw-out';r1.textContent=m1;
+  }
+  var anyChk=$('chkAirlines').checked||$('chkPortal').checked||$('chkComm').checked||$('chkBy').checked;
+  $('m2block').classList.toggle('show',anyChk);
+  var m2=buildM2(),b2=$('bub2'),r2=$('raw2');
+  if(!m2.trim()){
+    b2.className='bubble eb';b2.innerHTML='Tick a checkbox above…'+ts;
+    r2.className='raw-out er';r2.textContent='—';
+  }else{
+    b2.className='bubble';
+    b2.innerHTML=xh(m2).replace(/\n/g,'<br>')+ts;
+    r2.className='raw-out';r2.textContent=m2;
+  }
+}
+
+/* ═══ COPY ═══ */
+function copyMsg(n,e){
+  var msg=n===1?buildM1():buildM2();
+  if(!msg.trim()){toast('⚠️ Nothing to copy!','#9a5e08');return;}
+  var btn=$('cb'+n),rip=document.createElement('span');
+  rip.className='rip';
+  var r=btn.getBoundingClientRect(),s=Math.max(r.width,r.height);
+  rip.style.cssText='width:'+s+'px;height:'+s+'px;left:'+(e.clientX-r.left-s/2)+'px;top:'+(e.clientY-r.top-s/2)+'px';
+  btn.appendChild(rip);setTimeout(function(){rip.remove();},700);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(msg).catch(function(){fbCopy(msg);});
+  }else{fbCopy(msg);}
+  var lbl=$('cl'+n);lbl.textContent='Copied! ✓';
+  toast('✅ Message '+n+' copied!');
+  setTimeout(function(){lbl.textContent='Copy Message '+n;},2500);
+}
+function fbCopy(txt){
+  var ta=document.createElement('textarea');
+  ta.value=txt;ta.style.cssText='position:fixed;opacity:0;left:0;top:0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* ═══ SAVE / LOAD / DELETE ═══ */
+function getSaved(){try{var s=localStorage.getItem(SK);return s?JSON.parse(s):[];}catch(e){return[];}}
+function putSaved(a){
+  try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){toast('⚠️ Storage full!','#c0362a');}
+  gdPushData(a);
+}
+
+function saveEntry(){
+  var entry={
+    id:Date.now(),savedAt:new Date().toLocaleString('en-IN'),
+    travelDate:$('travelDate').value,
+    from:$('fromCode').value.trim(),to:$('toCode').value.trim(),
+    boldOn:boldOn,
+    fareRows:Array.from(document.querySelectorAll('#fbList .dyn-row')).map(function(r){
+      return{fare:r.querySelector('.fb-f').value.trim(),
+             checkin:r.querySelector('.fb-c').value.trim(),
+             cabin:r.querySelector('.fb-b').value.trim()};
+    }),
+    transits:Array.from(document.querySelectorAll('#tList .dyn-row')).map(function(r){
+      return{via:r.querySelector('.tv').value.trim(),
+             th:parseInt(r.querySelector('.th').value)||0,
+             tm:parseInt(r.querySelector('.tm').value)||0};
+    }),
+    chkAirlines:$('chkAirlines').checked,
+    airlines:Array.from(document.querySelectorAll('#aList .dyn-row')).map(function(r){return getAirlineRowVal(r);}),
+    chkPortal:$('chkPortal').checked,portal:getPortalVal(),
+    chkComm:$('chkComm').checked,commission:$('commission').value.trim(),
+    chkBy:$('chkBy').checked,by:getByVal(),
+    tripType:tripType,
+    rtDate:tripType==='rt'?$('rtDate').value:'',
+    rtFrom:tripType==='rt'?$('rtFrom').value.trim():'',
+    rtTo:tripType==='rt'?$('rtTo').value.trim():'',
+    rtFareRows:tripType==='rt'?Array.from(document.querySelectorAll('#rtFbList .dyn-row')).map(function(r){
+      return{fare:r.querySelector('.rb-f').value.trim(),checkin:r.querySelector('.rb-c').value.trim(),cabin:r.querySelector('.rb-b').value.trim()};
+    }):[],
+    rtTransits:tripType==='rt'?Array.from(document.querySelectorAll('#rtTList .dyn-row')).map(function(r){
+      return{via:r.querySelector('.rtv').value.trim(),th:parseInt(r.querySelector('.rth').value)||0,tm:parseInt(r.querySelector('.rtm').value)||0};
+    }):[]
+  };
+  var arr=getSaved();arr.unshift(entry);putSaved(arr);
+  renderSaved();updPill();toast('💾 Saved!');showTab('save');
+}
+
+function delEntry(id){
+  id=parseInt(id);
+  putSaved(getSaved().filter(function(e){return e.id!==id;}));
+  renderSaved();updPill();toast('🗑 Deleted');
+}
+
+function loadEntry(id){
+  id=parseInt(id);
+  var arr=getSaved(),entry=null;
+  for(var i=0;i<arr.length;i++){if(arr[i].id===id){entry=arr[i];break;}}
+  if(!entry){toast('⚠️ Entry not found','#c0362a');return;}
+
+  $('travelDate').value=entry.travelDate||'';
+  $('fromCode').value=entry.from||'';
+  $('toCode').value=entry.to||'';
+
+  /* bold */
+  if(boldOn!==!!entry.boldOn)toggleBold();
+
+  /* fare rows — backward compat with old single-fare saves */
+  $('fbList').innerHTML='';fbCtr=0;
+  var fbs=entry.fareRows&&entry.fareRows.length?entry.fareRows
+    :(entry.fare?[{fare:entry.fare,checkin:entry.checkin||'',cabin:entry.cabin||''}]
+    :[{fare:'',checkin:'',cabin:''}]);
+  fbs.forEach(function(fb){addFareRow(fb.fare||'',fb.checkin||'',fb.cabin||'');});
+
+  /* transits */
+  $('tList').innerHTML='';tidCtr=0;
+  var ts=entry.transits&&entry.transits.length?entry.transits:[{via:'',th:0,tm:0}];
+  ts.forEach(function(t){addTransit(t.via||'',parseInt(t.th)||0,parseInt(t.tm)||0);});
+
+  /* airlines */
+  $('aList').innerHTML='';aidCtr=0;
+  var als=entry.airlines&&entry.airlines.length?entry.airlines:[''];
+  als.forEach(function(a){addAirline(a||'');});
+  $('chkAirlines').checked=!!entry.chkAirlines;toggleDim('airlines');
+
+  /* portal */
+  buildPortalField(entry.portal||'');
+  $('chkPortal').checked=!!entry.chkPortal;toggleDim('portal');
+
+  /* commission */
+  $('commission').value=entry.commission||'';
+  $('chkComm').checked=!!entry.chkComm;toggleDim('comm');
+
+  /* by */
+  buildByField(entry.by||'');
+  $('chkBy').checked=!!entry.chkBy;toggleDim('by');
+
+  /* trip type + return */
+  var tt=entry.tripType||'ow';
+  tripType='ow';$('rtSection').classList.remove('show'); /* reset before setTripType */
+  $('rtFbList').innerHTML='';rtFbCtr=0;
+  $('rtTList').innerHTML='';rtTidCtr=0;
+  if(tt==='rt'){
+    setTripType('rt');
+    $('rtDate').value=entry.rtDate||'';
+    $('rtFrom').value=entry.rtFrom||'';
+    $('rtTo').value=entry.rtTo||'';
+    $('rtFbList').innerHTML='';rtFbCtr=0;
+    var rfbs=entry.rtFareRows&&entry.rtFareRows.length?entry.rtFareRows:[{fare:'',checkin:'',cabin:''}];
+    rfbs.forEach(function(fb){addRtFareRow(fb.fare||'',fb.checkin||'',fb.cabin||'');});
+    $('rtTList').innerHTML='';rtTidCtr=0;
+    var rts=entry.rtTransits&&entry.rtTransits.length?entry.rtTransits:[];
+    rts.forEach(function(t){addRtTransit(t.via||'',parseInt(t.th)||0,parseInt(t.tm)||0);});
+  }else{
+    setTripType('ow');
+  }
+
+  up();showTab('prev');toast('📂 Loaded!');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderSaved(){
+  var arr=getSaved();
+  $('savedList').innerHTML='';
+  $('noSaved').style.display=arr.length?'none':'block';
+  arr.forEach(function(e){
+    var route=(fmtDate(e.travelDate)||'—')+' | '+(e.from||'?')+' → '+(e.to||'?');
+    /* build fare summary */
+    var fareSummary='';
+    if(e.fareRows&&e.fareRows.length){
+      fareSummary=e.fareRows.filter(function(f){return f.fare;})
+        .map(function(f){return'₹'+xh(f.fare);}).join(', ');
+    }else if(e.fare){fareSummary='₹'+xh(e.fare);}
+    var als=(e.airlines||[]).filter(Boolean).join(' + ');
+    var meta='';
+    if(fareSummary)meta+=fareSummary;
+    if(als)meta+=(meta?' · ':'')+' ✈️ '+xh(als);
+    if(e.portal)meta+=(meta?' · ':'')+'🌐 '+xh(e.portal);
+    if(e.commission)meta+=(meta?' · ':'')+'💼 ₹'+xh(e.commission);
+    if(e.by)meta+=(meta?' · ':'')+'👤 '+xh(e.by);
+    if(e.tripType==='rt')meta+=(meta?' · ':'')+' 🔁 Round Trip';
+    var d=mk('div','saved-card');
+    d.innerHTML=
+      '<div class="sc-route">'+xh(route)+'</div>'+
+      (meta?'<div class="sc-meta">'+meta+'</div>':'')+
+      '<div class="sc-ts">🕐 '+xh(e.savedAt||'')+'</div>'+
+      '<div class="sc-btns">'+
+        '<button class="sc-load" onclick="loadEntry('+e.id+')">📂 Load</button>'+
+        '<button class="sc-del" onclick="delEntry('+e.id+')">🗑 Delete</button>'+
+      '</div>';
+    $('savedList').appendChild(d);
+  });
+}
+function updPill(){
+  var n=getSaved().length,p=$('sPill');
+  p.textContent=n;p.className='s-pill'+(n?'':' z');
+}
+
+/* ═══ CLEAR ═══ */
+function clearAll(){
+  ['travelDate','fromCode','toCode','commission'].forEach(function(id){if($(id))$(id).value='';});
+  if(boldOn)toggleBold();
+  $('chkAirlines').checked=false;toggleDim('airlines');
+  $('chkPortal').checked=false;toggleDim('portal');
+  $('chkComm').checked=false;toggleDim('comm');
+  $('chkBy').checked=false;toggleDim('by');
+  setTripType('ow');
+  $('rtFbList').innerHTML='';rtFbCtr=0;
+  $('rtTList').innerHTML='';rtTidCtr=0;
+  $('fbList').innerHTML='';fbCtr=0;addFareRow('','','');
+  $('tList').innerHTML='';tidCtr=0;addTransit('',0,0);
+  $('aList').innerHTML='';aidCtr=0;addAirline('');
+  buildPortalField('');buildByField('');up();
+}
+
+/* ═══ ENTER KEY → NEXT FIELD ═══ */
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  var el=e.target;
+  /* Only move on text / number / date inputs */
+  if(el.tagName!=='INPUT')return;
+  if(el.type==='checkbox'||el.type==='radio'||el.type==='submit')return;
+  /* Settings "Add" inputs keep their own Enter handler */
+  if(el.id==='newAirlineOpt'||el.id==='newPortalOpt'||el.id==='newByOpt')return;
+
+  e.preventDefault();
+
+  /* Collect every text/number/date input inside the form that is:
+     - not hidden by inline style
+     - not inside a .dim section (checkbox unticked)
+     - not a settings input                                    */
+  var all=Array.from(document.querySelectorAll(
+    '.form-panel input[type="text"],.form-panel input[type="number"],.form-panel input[type="date"]'
+  )).filter(function(inp){
+    if(inp.id==='newAirlineOpt'||inp.id==='newPortalOpt'||inp.id==='newByOpt')return false;
+    if(inp.style.display==='none')return false;          /* hidden custom inputs */
+    if(inp.closest('.dim'))return false;                 /* inside dimmed section */
+    return true;
+  });
+
+  var idx=all.indexOf(el);
+  if(idx!==-1&&idx<all.length-1){
+    var next=all[idx+1];
+    next.focus();
+    try{next.select();}catch(err){}
+  }
+});
+
+/* ═══ INIT ═══ */
+addFareRow('','','');
+addTransit('',0,0);
+addAirline('');
+buildPortalField('');
+buildByField('');
+renderSaved();
+updPill();
+up();
+</script>
+</body>
+</html>
